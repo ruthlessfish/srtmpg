@@ -68,7 +68,7 @@ const collectible = {x: 0, y: 0};
 
 io.on("connection", (client) => {
   console.log("Player connected", client.id);
-  client.emit('init', { players, collectible});
+  client.emit('start-game', { players, collectible});
 
   client.on('add-player', newPlayer => {
     players[client.id] = newPlayer;
