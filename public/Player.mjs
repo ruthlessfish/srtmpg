@@ -1,4 +1,4 @@
-import params from './params.mjs';
+import * as constants from './constants.mjs';
 
 class Player {
   constructor({x, y, score, id}) {
@@ -11,22 +11,22 @@ class Player {
   movePlayer(dir, speed) {
     switch(dir) {
       case 'up':
-        this.y - speed >= params.playField.minY ?
+        this.y - speed >= constants.PLAY_FIELD_MIN_Y ?
           (this.y -= speed) :
           (this.y -= 0);
         break;
       case 'down':
-        this.y + speed <= params.playField.maxY ?
+        this.y + speed <= constants.PLAY_FIELD_MAX_Y ?
           (this.y += speed) :
           (this.y += 0);
         break;
       case 'left':
-        this.x - speed >= params.playField.minX ?
+        this.x - speed >= constants.PLAY_FIELD_MIN_X ?
           (this.x -= speed) :
           (this.x -= 0);
         break;
       case 'right':
-        this.x + speed <= params.playField.maxX ?
+        this.x + speed <= constants.PLAY_FIELD_MAX_X ?
           (this.x += speed) :
           (this.x += 0);
         break;
@@ -35,9 +35,9 @@ class Player {
 
   collision(item) {
     if (this.x < item.x + item.width &&
-        this.x + params.playerWidth > item.x &&
+        this.x + constants.PLAYER_WIDTH > item.x &&
         this.y < item.y + item.height &&
-        this.y + params.playerHeight > item.y) {
+        this.y + constants.PLAYER_HEIGHT > item.y) {
       this.score += item.points;
       return true;
     }

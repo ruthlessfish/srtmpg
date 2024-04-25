@@ -1,0 +1,17 @@
+export const PLAYER_WIDTH = 30;
+export const PLAYER_HEIGHT = 30;
+export const COIN_WIDTH = 15;
+export const COIN_HEIGHT = 15;
+export const CANVAS_WIDTH = 640;
+export const CANVAS_HEIGHT = 480;
+export const STATUS_BAR_HEIGHT = 45;
+export const PLAY_FIELD_MIN_X = 0;
+export const PLAY_FIELD_MIN_Y = STATUS_BAR_HEIGHT;
+export const PLAY_FIELD_MAX_X = CANVAS_WIDTH - PLAYER_WIDTH;
+export const PLAY_FIELD_MAX_Y = CANVAS_HEIGHT - PLAYER_HEIGHT;
+export const PLAYER_SPEED = 5;
+export const BG_COLOR = "#231f20";
+export const PLAYER_COLOR = "#c2c2c2";
+export const COIN_COLOR = "#ffd700";
+export const ENEMY_COLOR = "#ff0a54";
+export const STATUS_BAR_COLOR = "#808080";
