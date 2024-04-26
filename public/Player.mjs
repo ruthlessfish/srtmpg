@@ -22,6 +22,23 @@ class Player {
     ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
+  movePlayer(movement, value) {
+    switch(movement) {
+      case 'up':
+        this.y -= value;
+        break;
+      case 'down':
+        this.y += value;
+        break;
+      case 'left':
+        this.x -= value;
+        break;
+      case 'right':
+        this.x += value;
+        break;
+    }
+  }
+
   move() {
     if (this.movement.up) {
       this.y -= constants.PLAYER_SPEED;
