@@ -63,29 +63,31 @@ server.listen(portNum, () => {
 });
 
 const players = {};
-// let collectible = new Collectible();
-const collectible = {x: 0, y: 0};
 
 io.on("connection", (client) => {
   console.log("Player connected", client.id);
-  client.emit('start-game', { players, collectible});
+  client.emit('start-game', { players});
 
   client.on('add-player', newPlayer => {
     players[client.id] = newPlayer;
     client.broadcast.emit('new-player', newPlayer);
   });
 
-  // client.on('player-moved', (direction) => {
-  //   const player = players[client.id];
-  //   player.movePlayer(direction.dirX, direction.speed);
-  //   player.movePlayer(direction.dirY, direction.speed);
+  client.on('move-start', data => {
+    data.id = client.id;
+    client.broadcast.emit('move-start', data);
+  });
 
-  //   if (player.collision(collectible)) {
-  //     collectible.respawn();
-  //     io.emit('new-collectible', collectible);
-  //   }
-  //   io.emit('player-moved', player);
-  // });
+  client.on('move-end', data => {
+    data.id = client.id;
+    client.broadcast.emit('move-end', data);
+  });
+
+  client.on('coin-taken', data => {
+    data.id = client.id;
+    io.sockets.emit('coin-collected', data);
+    io.sockets.emit('new-coin');
+  });
 
   client.on("disconnect", () => {
     console.log("Player disconnected", client.id);

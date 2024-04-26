@@ -7,12 +7,17 @@ import {
 } from "./constants.mjs";
 import Player from './Player.mjs';
 import Collectible from './Collectible.mjs';
+import controls from './controls.mjs';
+import { createPlayer, createCoin } from './utils.mjs';
 
 const socket = io();
 const canvas = document.getElementById("game-window");
 const ctx = canvas.getContext("2d");
-const players = {};
-let localId;
+
+let gameFrame = 0;
+let players = {};
+let localId = '';
+let activeCoin;
 
 /**
  * Initialize the game
@@ -21,20 +26,9 @@ function initialize() {
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
 
-  socket.on("start-game", handleStartGame);
-  socket.on("new-player", handleNewPlayer);
-  socket.on("remove-player", handleRemovePlayer);
-};
-
-/**
- * Set up and start the game
- * @param {Object} data 
- */
-function handleStartGame(data) {
+  socket.on("start-game", data => {
     console.log("Connected to server");
-    const player1 = new Player({
-        id: socket.id
-    });
+    const player1 = createPlayer(socket.id);
     socket.emit('add-player', player1);
 
     for (let key in data.players) {
@@ -44,37 +38,44 @@ function handleStartGame(data) {
     players[socket.id] = player1;
     localId = socket.id;
     console.log("my player id:", localId);
+    activeCoin = createCoin();
+
+    socket.on("new-player", player => {
+        console.log("new player joined", player);
+        players[player.id] = new Player(player);
+    });
     
-    document.addEventListener('keydown', keydown);
+    socket.on("remove-player", playerId => {
+        console.log("player left", playerId);
+        delete players[playerId];
+    });
+    
+    socket.on('move-start', data => {
+        const player = players[data.id];
+        player.movement[data.direction] = 1;
+        player.x = data.x;
+        player.y = data.y;
+    });
 
+    socket.on('move-end', data => {
+        const player = players[data.id];
+        player.movement[data.direction] = 0;
+        player.x = data.x;
+        player.y = data.y;
+    });
+
+    socket.on('coin-collected', data => {
+        players[data.id].score += data.value;
+    });
+
+    socket.on('new-coin', () => {
+        activeCoin = createCoin();
+    });
+
+    controls(player1, socket);
     drawScreen();
-}
-
-/**
- * Add a new player to the game
- * @param {Player} player 
- */
-function handleNewPlayer(player) {
-    console.log("new player joined", player);
-    players[player.id] = new Player(player);
-}
-
-/**
- * Remove a player from the game
- * @param {String} playerId 
- */
-function handleRemovePlayer(playerId) {
-    console.log("player left", playerId);
-    delete players[playerId];
-}
-
-/**
- * Handle keydown events
- * @param {Event} e 
- */
-function keydown(e) {
-    console.log(e.keyCode);
-}
+  });
+};
 
 /**
  * Draw the game screen
@@ -92,15 +93,37 @@ function drawScreen(state) {
     ctx.textAlign = "center";
     ctx.fillText("Controls: WASD", CANVAS_WIDTH / 6, 30);
 
-    // const thisPlayer = players.find((player) => player.id === localId);
-    // ctx.fillText(
-    //   thisPlayer.calculateRank(players),
-    //   (gameConstants.CANVAS_WIDTH / 6) * 5,
-    //   35
-    // );
+    const thisPlayer = players[localId];
+    ctx.fillText(
+      thisPlayer.calculateRank(players),
+      (CANVAS_WIDTH / 6) * 5,
+      35
+    );
 
     ctx.font = "16px 'Press Start 2P'";
     ctx.fillText("Coin Race", CANVAS_WIDTH / 2, 30);
+
+    let keep;
+    for (let key in players) {
+        const player = players[key];
+        player.move();
+        if (player.id !== localId) {
+            player.draw(ctx, true);
+        } else {
+            keep = player;
+            if (player.collision(activeCoin)) {
+                socket.emit('coin-taken', { id: player.id, value: activeCoin.value });
+            }
+        }
+        if (keep) {
+            keep.draw(ctx);
+        }
+    }
+
+    activeCoin.draw(ctx);
+    gameFrame++;
+
+    requestAnimationFrame(drawScreen);
 }
 
 // hold on to your butts...
